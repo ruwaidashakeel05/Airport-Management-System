@@ -18,24 +18,11 @@ struct Flight {
     float price;
 };
 
-struct Luggage {
-    int id;
-    double weight;
-    char owner[30];
-};
 
-struct Passenger {
-    int id;
-    char name[30];
-    int luggageID;
-    bool isCheckedIn;
-};
 
 // Global variables
 Flight flights[MAX_FLIGHTS];
 int flightCount = 0;
-Luggage luggageList[MAX_LUGGAGE];
-int luggageCount = 0;
 
 // Function prototypes
 int main_menu();
@@ -120,6 +107,8 @@ void read_flights_from_file() {
 
 // Function to display flight details
 void flight_details() {
+    system("cls"); // Clears the console
+
     // Ensure the latest flights are loaded from the file
     read_flights_from_file();
 
@@ -194,6 +183,8 @@ void add_flights() {
     }
 }
 void delete_flights() {
+    system("cls"); // Clears the console
+
     // Ensure the latest flights are loaded from the file
     read_flights_from_file();
 
@@ -233,6 +224,10 @@ void delete_flights() {
 }
 
 void seat_reservation(const string& username) {
+    system("cls"); // Clears the console
+
+    cout << "\n=== Seat Reservation ===\n";
+
     flight_details();
 
     int flightChoice;
@@ -397,6 +392,8 @@ int main_menu() {
 }
 
 string login() {
+    system("cls"); // Clears the console
+
     char username[MAX_NAME];
     char password[MAX_NAME];
     char stored_username[MAX_NAME];
@@ -448,6 +445,8 @@ string login() {
 }
 
 string signup() {
+    system("cls"); // Clears the console
+
     char username[MAX_NAME];
     char password[MAX_NAME];
 
@@ -471,6 +470,14 @@ string signup() {
 }
 
 int customer() {
+    system("cls"); // Clears the console
+
+    string loggedInUsername;
+
+    // Simulate a login system (you can replace this with your actual login logic)
+    cout << "Enter your username: ";
+    cin >> loggedInUsername;
+
     char choice;
     do {
         cout << "\n=== Customer Menu ===\n";
@@ -482,14 +489,12 @@ int customer() {
         cout << "Choice: ";
         cin >> choice;
 
-        string username; // Get current username
-
         switch (choice) {
         case '1':
-            seat_reservation(username);
+            seat_reservation(loggedInUsername);
             break;
         case '2':
-            user_ticket(username);
+            user_ticket(loggedInUsername);
             break;
         case '3':
             flight_details();
@@ -506,41 +511,47 @@ int customer() {
 }
 
 void user_ticket(const string& username) {
+    system("cls"); // Clears the console
+
     cout << "\n=== Your Tickets ===\n";
 
     ifstream file("reservations.txt");
     if (!file.is_open()) {
-        cout << "No tickets found\n";
+        cout << "Error: Could not open reservations file.\n";
         return;
     }
 
     string line;
-    bool printing = false;
-    bool found = false;
+    bool ticketFound = false;
 
     while (getline(file, line)) {
-        if (line.find("Ticket ID: ") != string::npos) {
-            printing = true;
-            found = true;
-        }
-        else if (line.find("---") != string::npos) {
-            printing = false;
-        }
+        // Check if the line contains the username
+        if (line.find("Username: " + username) != string::npos) {
+            ticketFound = true;
 
-        if (printing) {
-            cout << line << "\n";
-        }
-    }
+            // Display the ticket details
+            cout << "\nTicket Details:\n";
+            cout << line << endl; // Display username line
 
-    if (!found) {
-        cout << "No tickets found for " << username << "\n";
+            // Read and display the next lines (ticket details)
+            for (int i = 0; i < 3; i++) { // Assuming 3 lines of details per ticket
+                if (getline(file, line)) {
+                    cout << line << endl;
+                }
+            }
+        }
     }
 
     file.close();
+
+    if (!ticketFound) {
+        cout << "No tickets found for username: " << username << "\n";
+    }
 }
 
-
 void total_passengers() {
+    system("cls"); // Clears the console
+
     cout << "\n=== Total Passengers ===\n";
 
     ifstream file("reservations.txt");
@@ -559,6 +570,8 @@ void total_passengers() {
 }
 
 void tickets_bought() {
+    system("cls"); // Clears the console
+
     cout << "\n=== Tickets Bought ===\n";
 
     ifstream file("reservations.txt");
@@ -582,6 +595,8 @@ void tickets_bought() {
 }
 
 void luggage_management() {
+    system("cls"); // Clears the console
+
     char choice;
     do {
         cout << "\n=== Luggage Management ===\n";
@@ -600,7 +615,7 @@ void luggage_management() {
         case '2': delete_luggage();
             break;
 
-        case '3': display_luggage;
+        case '3': display_luggage();
             break;
 
         case '4':
@@ -614,6 +629,8 @@ void luggage_management() {
 }
 
 void checkin() {
+    system("cls"); // Clears the console
+
     cout << "\n=== Check-in ===\n";
 
     int ticketID, flightID;
@@ -632,11 +649,12 @@ void checkin() {
     bool ticketFound = false, flightMatched = false;
     string passengerName;
 
+    // Process the reservations file
     while (getline(file, line)) {
-        // Extract Ticket ID from line
+        // Extract Ticket ID
         if (line.find("Ticket ID: ") != string::npos) {
             int extractedTicketID = 0;
-            for (size_t i = line.find(":") + 2; i < line.size(); i++) {
+            for (int i = line.find(":") + 2; i < line.size(); i++) {
                 if (isdigit(line[i])) {
                     extractedTicketID = extractedTicketID * 10 + (line[i] - '0');
                 }
@@ -644,16 +662,15 @@ void checkin() {
                     break;
                 }
             }
-
             if (extractedTicketID == ticketID) {
                 ticketFound = true;
             }
         }
 
-        // Extract Flight ID from line
+        // Extract Flight ID
         if (ticketFound && line.find("Flight ID: ") != string::npos) {
             int extractedFlightID = 0;
-            for (size_t i = line.find(":") + 2; i < line.size(); i++) {
+            for (int i = line.find(":") + 2; i < line.size(); i++) {
                 if (isdigit(line[i])) {
                     extractedFlightID = extractedFlightID * 10 + (line[i] - '0');
                 }
@@ -661,7 +678,6 @@ void checkin() {
                     break;
                 }
             }
-
             if (extractedFlightID == flightID) {
                 flightMatched = true;
             }
@@ -670,8 +686,8 @@ void checkin() {
         // Extract Passenger Name
         if (ticketFound && line.find("Passenger: ") != string::npos) {
             passengerName = "";
-            size_t start = line.find(":") + 2;
-            for (size_t i = start; i < line.size(); i++) {
+            int start = line.find(":") + 2;
+            for (int i = start; i < line.size(); i++) {
                 passengerName += line[i];
             }
         }
@@ -683,28 +699,8 @@ void checkin() {
     }
     file.close();
 
-    // Validate results
     if (ticketFound && flightMatched) {
-        // Generate unique Luggage ID
-        int luggageID = 1; // Start luggage ID from 1
-        ifstream checkinFile("checkins.txt");
-        while (getline(checkinFile, line)) {
-            if (line.find("Luggage ID: ") != string::npos) {
-                int lastLuggageID = 0;
-                for (size_t i = line.find(":") + 2; i < line.size(); i++) {
-                    if (isdigit(line[i])) {
-                        lastLuggageID = lastLuggageID * 10 + (line[i] - '0');
-                    }
-                    else {
-                        break;
-                    }
-                }
-                luggageID = lastLuggageID + 1; // Increment luggage ID
-            }
-        }
-        checkinFile.close();
-
-        // Save check-in details with luggage ID
+        // Save check-in details
         ofstream outFile("checkins.txt", ios::app);
         if (!outFile.is_open()) {
             cout << "Error: Could not open checkins.txt for writing.\n";
@@ -714,12 +710,10 @@ void checkin() {
         outFile << "Ticket ID: " << ticketID << "\n";
         outFile << "Passenger Name: " << passengerName << "\n";
         outFile << "Flight ID: " << flightID << "\n";
-        outFile << "Luggage ID: " << luggageID << "\n";
         outFile << "-----------------------------\n";
         outFile.close();
 
         cout << "Check-in successful!\n";
-        cout << "Assigned Luggage ID: " << luggageID << "\n";
     }
     else if (!ticketFound) {
         cout << "Error: Ticket ID not found.\n";
@@ -730,7 +724,10 @@ void checkin() {
 }
 
 
+
 void boarding() {
+    system("cls"); // Clears the console
+
     cout << "\n=== Boarding ===\n";
 
     int ticketID;
@@ -814,6 +811,8 @@ void boarding() {
 }
 
 int admin() {
+    system("cls"); // Clears the console
+
     char choice;
     do {
         cout << "\n=== Admin Menu ===\n";
@@ -840,6 +839,8 @@ int admin() {
 }
 
 int staff() {
+    system("cls"); // Clears the console
+
     char choice;
     do {
         cout << "\n=== Staff Menu ===\n";
@@ -864,6 +865,8 @@ int staff() {
 }
 
 void add_luggage() {
+    system("cls"); // Clears the console
+
     cout << "\n=== Add Luggage ===\n";
 
     int ticketID;
@@ -973,9 +976,118 @@ void add_luggage() {
 }
 
 void delete_luggage() {
-    cout << "";
+    system("cls"); // Clears the console
+
+    cout << "\n=== Delete Luggage ===\n";
+
+    int ticketID, luggageID;
+    cout << "Enter Ticket ID: ";
+    cin >> ticketID;
+    cout << "Enter Luggage ID to delete: ";
+    cin >> luggageID;
+
+    // Open the luggage file and create a temporary file to store updated data
+    ifstream luggageFile("luggage.txt");
+    ofstream tempFile("temp_luggage.txt");
+
+    if (!luggageFile.is_open() || !tempFile.is_open()) {
+        cout << "Error: Could not open luggage files.\n";
+        return;
+    }
+
+    string line;
+    bool luggageDeleted = false;
+
+    // Copy the data except the luggage we want to delete
+    while (getline(luggageFile, line)) {
+        if (line.find("Luggage ID: ") != string::npos) {
+            int currentLuggageID = 0;
+            int pos = 12; // Skip past "Luggage ID: "
+            while (pos < line.length() && isdigit(line[pos])) {
+                currentLuggageID = currentLuggageID * 10 + (line[pos] - '0');
+                pos++;
+            }
+
+            // If we find the matching luggage ID, skip writing that line
+            if (currentLuggageID == luggageID) {
+                luggageDeleted = true;
+                // Skip lines for this luggage entry
+                for (int i = 0; i < 4; i++) {
+                    getline(luggageFile, line);
+                }
+            }
+            else {
+                tempFile << line << endl;
+            }
+        }
+        else {
+            tempFile << line << endl;
+        }
+    }
+
+    luggageFile.close();
+    tempFile.close();
+
+    if (luggageDeleted) {
+        // Replace the original luggage file with the updated one
+        remove("luggage.txt");
+        rename("temp_luggage.txt", "luggage.txt");
+        cout << "Luggage deleted successfully!\n";
+    }
+    else {
+        cout << "Error: Luggage not found.\n";
+    }
 }
 
 void display_luggage() {
-    cout << "";
+    system("cls"); // Clears the console
+
+    cout << "\n=== Display Luggage ===\n";
+
+    int ticketID;
+    cout << "Enter Ticket ID to display luggage (0 to display all): ";
+    cin >> ticketID;
+
+    ifstream luggageFile("luggage.txt");
+    if (!luggageFile.is_open()) {
+        cout << "Error: Could not open luggage file.\n";
+        return;
+    }
+
+    string line;
+    bool luggageFound = false;
+
+    // Loop through the luggage file and display the luggage for the specified ticket ID
+    while (getline(luggageFile, line)) {
+        if (line.find("Luggage ID: ") != string::npos) {
+            string luggageID = line; // Store the Luggage ID line
+            getline(luggageFile, line); // Read Ticket ID line
+            int currentTicketID = 0;
+            int pos = 11; // Skip past "Ticket ID: "
+            while (pos < line.length() && isdigit(line[pos])) {
+                currentTicketID = currentTicketID * 10 + (line[pos] - '0');
+                pos++;
+            }
+
+            // If ticketID is 0 (display all) or the line matches the entered ticketID
+            if (ticketID == 0 || currentTicketID == ticketID) {
+                luggageFound = true;
+
+                // Print the entire luggage record, including Luggage ID
+                cout << luggageID << endl;
+                cout << line << endl; // Ticket ID
+                for (int i = 0; i < 3; i++) {
+                    getline(luggageFile, line);
+                    cout << line << endl;
+                }
+                cout << "-----------------------------\n";
+            }
+        }
+    }
+
+    luggageFile.close();
+
+    if (!luggageFound) {
+        cout << "No luggage found for the given Ticket ID.\n";
+    }
 }
